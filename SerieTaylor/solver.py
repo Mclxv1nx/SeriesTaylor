@@ -25,24 +25,38 @@ class Monomio:
         :return:
         """
         self.monomio = monomio.replace("^","")
-        for i in range(len(self.monomio)):
-            if monomio[i].isdigit() or monomio[i] == "-":
-                self.coeficiente += str(monomio[i])
-            if not(monomio[i].isdigit()) and monomio[i] != "-":
-                try:
-                    self.variable = self.monomio[i]
-                except:
-                    self.variable = ""
-                try :
-                    self.potencia = float(self.monomio[i+1: len(self.monomio)])
-                except:
-                    self.potencia = 1
-                break
 
-        try:
-            self.coeficiente = float(self.coeficiente)
-        except:
-            self.coeficiente = -1.0
+        numero = True
+
+        for i in range(len(self.monomio)):
+            if not(monomio[i].isdigit()) and monomio[i] != '-':
+                numero = False
+                break
+            else: pass
+
+        if (not(numero)):
+            for i in range(len(self.monomio)):
+                if monomio[i].isdigit() or monomio[i] == "-":
+                    self.coeficiente += str(monomio[i])
+                if not(monomio[i].isdigit()) and monomio[i] != "-":
+                    try:
+                        self.variable = self.monomio[i]
+                    except:
+                        self.variable = ""
+                    try :
+                        self.potencia = float(self.monomio[i+1: len(self.monomio)])
+                    except:
+                        self.potencia = 1
+                    break
+
+            if self.coeficiente == "": self.coeficiente = 1
+            else:
+                try:
+                    self.coeficiente = float(self.coeficiente)
+                except:
+                    self.coeficiente = 1
+        else:
+            self.coeficiente = float(self.monomio)
 
     def __parse_from_params__(self, coeficiente : int | float,
                               variable : str, potencia : int | float):
@@ -70,7 +84,10 @@ class Monomio:
         Deriva el monomio
         :return: dato Monomio resultado de derivar funciones sencillas
         """
-        return Monomio(self.coeficiente*self.potencia, self.variable, self.potencia - 1)
+        if self.potencia !=0 :
+            return Monomio(self.coeficiente*self.potencia, self.variable, self.potencia - 1)
+        else:
+            return Monomio("0")
 
     def __str__(self):
         monomio = ""
@@ -81,21 +98,29 @@ class Monomio:
                     monomio += str(int(self.coeficiente))
                 except:
                     monomio += str(self.coeficiente)
+            elif self.coeficiente == -1.0: monomio += "-"
             if self.potencia != 0:
                 if(self.variable != ""): monomio += self.variable
                 if self.potencia != 1:
                     try:
-                        monomio += str(int(self.potencia))
+                        monomio += "^" + str(int(self.potencia))
                     except:
-                        monomio += str(self.potencia)
+                        monomio += "^" + str(self.potencia)
+        else: return "";
 
-        if monomio == "": monomio = "1"
-        elif monomio == "-" : monomio = "-1"
-        return monomio
-
+        try:
+            if self.coeficiente == 1 and monomio == '': monomio = "1"
+        except:
+            pass
+        finally:
+            return monomio
 class Polinomio:
     def __init__(self, polinomio : str):
-        if polinomio.__contains__(" "): polinomio.replace(" ", "")
+        """
+        Inicializa la clase polinomio
+        :param polinomio: conjunto de monomios en dato string
+        """
+        if polinomio.__contains__(" "): polinomio = polinomio.replace(' ', '')
         polinomio = polinomio.replace("+", "_")
         polinomio = polinomio.replace("-", "_-")
         polinomio = polinomio.split("_")
@@ -104,6 +129,13 @@ class Polinomio:
         self.polinomio = []
         for monomio in polinomio:
             self.polinomio.append(Monomio(monomio))
+
+    def Derivar(self):
+        derivada = ""
+        for monomio in self.polinomio:
+            derivada += str(monomio.Derivar())
+
+        return Polinomio(derivada)
 
     def __str__(self):
         polinomio = ""
@@ -115,6 +147,9 @@ class Polinomio:
             else:
                 pass
 
-        if polinomio[1] == "+": polinomio = polinomio[3:len(str(polinomio))]
+        try:
+            if polinomio[1] == "+": polinomio = polinomio[3:len(str(polinomio))]
+        except:
+            polinomio = "0"
 
         return polinomio
