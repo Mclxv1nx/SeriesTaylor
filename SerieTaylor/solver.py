@@ -12,7 +12,7 @@ class Monomio:
         self.coeficiente = self.variable = ""
         self.potencia = 0
 
-        if variable == None and potencia == None:
+        if variable is None and potencia is None:
             self.__parse_from_string__(monomio_o_coeficiente)
         else:
             self.__parse_from_params__(monomio_o_coeficiente,
@@ -29,16 +29,15 @@ class Monomio:
         numero = True
 
         for i in range(len(self.monomio)):
-            if not(monomio[i].isdigit()) and monomio[i] != '-':
+            if not(monomio[i].isdigit()) and monomio[i] != '-' and monomio[i] != '.' and monomio[i] != ',':
                 numero = False
                 break
-            else: pass
 
         if (not(numero)):
             for i in range(len(self.monomio)):
-                if monomio[i].isdigit() or monomio[i] == "-":
+                if monomio[i].isdigit() or monomio[i] == '-' or monomio[i] == '.' or monomio[i] == ',':
                     self.coeficiente += str(monomio[i])
-                if not(monomio[i].isdigit()) and monomio[i] != "-":
+                if not(monomio[i].isdigit()) and monomio[i] != '-' and monomio[i] != '.' and monomio[i] != ',':
                     try:
                         self.variable = self.monomio[i]
                     except:
@@ -77,7 +76,9 @@ class Monomio:
         :param reemplazo: valor a reemplazar
         :return: dato float resultado de la operación
         """
-        return self.coeficiente * reemplazo ** self.potencia
+        reg = self.coeficiente * reemplazo ** self.potencia
+        if int(reg) == reg: return int(reg)
+        else: return reg
 
     def Derivar(self):
         """
@@ -91,12 +92,11 @@ class Monomio:
 
     def __str__(self):
         monomio = ""
-        if self.coeficiente == -1.0 : monomio += "-"
         if self.coeficiente != 0.0:
             if self.coeficiente != 1.0 and self.coeficiente != -1.0:
-                try:
+                if int(self.coeficiente) == self.coeficiente:
                     monomio += str(int(self.coeficiente))
-                except:
+                else:
                     monomio += str(self.coeficiente)
             elif self.coeficiente == -1.0: monomio += "-"
             if self.potencia != 0:
@@ -110,6 +110,7 @@ class Monomio:
 
         try:
             if self.coeficiente == 1 and monomio == '': monomio = "1"
+            elif self.coeficiente == -1 and monomio == '-': monomio = "-1"
         except:
             pass
         finally:
@@ -131,11 +132,42 @@ class Polinomio:
             self.polinomio.append(Monomio(monomio))
 
     def Derivar(self):
+        """
+        Deriva el polinomio
+        :return: un polinomio derivado en tipo str
+        """
         derivada = ""
         for monomio in self.polinomio:
-            derivada += str(monomio.Derivar())
+            d = monomio.Derivar()
+            if d.coeficiente < 0: derivada += str(d)
+            elif d.coeficiente > 0: derivada += "+"+str(d)
+            else: pass
 
         return Polinomio(derivada)
+
+    def Multiplicar(self, num : float | int, a : float | int):
+        """
+        Multiplica por el binomio num(x-a) donde:
+        :param num: es el numero resultado del reemplazo respectivo
+        :param a: es el numero inicial a buscar en y
+        :return: Un binomio resultante de la multiplicación
+        """
+        new_a = num*a*-1
+        if(new_a > 0): return Polinomio(str(num) + "x+" + str(new_a))
+        elif(new_a < 0): return Polinomio(str(num) + "x" + str(new_a))
+        else: return Polinomio(str(num) + "x")
+
+    def Reemplazar(self, reemplazo: float | int):
+        """
+        Reemplaza todas las incognitas del polinomio por "reemplazo"
+        :param reemplazo: el numero a reemplazar
+        :return: dato float del resultado
+        """
+        res = 0.0
+        for monomio in self.polinomio:
+            res += monomio.Reemplazar(reemplazo)
+        if int(res) == res: return int(res)
+        else: return res
 
     def __str__(self):
         polinomio = ""
